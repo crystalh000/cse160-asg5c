@@ -3,7 +3,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 export default {
   publicDir: "src",
-  base: "/cse160-asg5b/",
+  base: "/cse160-asg5c/",
   build: {
     rollupOptions: {
       input: {
