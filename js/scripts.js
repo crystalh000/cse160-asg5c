@@ -1,25 +1,33 @@
 // Importing all modules from 'three' library
+
+//move objects higher
+//change default camera position to be higher
+
 import * as THREE from 'three';
 // Importing OrbitControls from 'three' library which allows camera to orbit around a target
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'dat.gui';
 import sky from '../img/sky.jpg';
 import rock from '../img/rock.jpg';
-
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { Water } from 'three/examples/jsm/objects/Water.js'; // Import Water from the examples
+
 // import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 // import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
-
 const islandURL = new URL('../assets/floating-islands.glb', import.meta.url);
 const airplaneURL = new URL('../assets/Airplane.glb', import.meta.url);
 const waterfallURL = new URL('../assets/Waterfall.glb', import.meta.url);
+const birdURL = new URL('../assets/Parrot.glb', import.meta.url);
+
+const worldHeight = 100;
+
 // Low poly floating islands by vanAchen [CC-BY] via Poly Pizza
 
 // Airplane by Poly by Google [CC-BY] via Poly Pizza
 
 // Waterfall by Poly by Google [CC-BY] via Poly Pizza
 
-
+// Parrot by Poly by Google [CC-BY] via Poly Pizza
 
 // Creating a WebGL renderer
 const renderer = new THREE.WebGLRenderer();
@@ -29,23 +37,43 @@ renderer.shadowMap.enabled = true;
 renderer.setSize( window.innerWidth, window.innerHeight );
 // Appending the renderer to the body of the document
 document.body.appendChild( renderer.domElement );
-
 // Creating a new scene
 const scene = new THREE.Scene();
 // Creating a perspective camera with a field of view of 75, aspect ratio based on window size, and near and far clipping plane
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 2000 );
-
+const camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 0.1, 2000 );
 // Creating orbit controls for the camera
 const orbit = new OrbitControls(camera, renderer.domElement);
 
-// // Creating an axes helper with size 5 and adding it to the scene
-// const axesHelper = new THREE.AxesHelper( 5 );
-// scene.add( axesHelper );
-
 // Setting the camera position
-camera.position.set(-10,5,150);
-// Updating the orbit controls
-orbit.update();
+camera.position.set(0,130,180);
+
+//camera controls
+// Create a new dat.GUI object
+// var cameraGui = new dat.GUI();
+
+// // Create an object to hold the camera position
+// var cameraPosition = {
+//   x: camera.position.x,
+//   y: camera.position.y,
+//   z: camera.position.z
+// };
+
+// // Add sliders for the camera position
+// cameraGui.add(cameraPosition, 'x', -300, 300).onChange(function(value) {
+//   // Update the camera position when the slider value changes
+//   camera.position.x = value;
+// });
+
+// cameraGui.add(cameraPosition, 'y', -300, 300).onChange(function(value) {
+//   camera.position.y = value;
+// });
+
+// cameraGui.add(cameraPosition, 'z', -300, 300).onChange(function(value) {
+//   camera.position.z = value;
+// });
+
+// // Updating the orbit controls
+// orbit.update();
 
 // Creating a box geometry
 const geometry = new THREE.OctahedronGeometry();
@@ -63,24 +91,10 @@ const diamond = new THREE.Mesh( geometry, diamondMaterial );
 
 // Scaling the diamond to make it bigger and skinnier
 diamond.scale.set(2, 4, 2);
+diamond.position.y += worldHeight;
+
 // Adding the box to the scene
 scene.add( diamond );
-// const planeGeometry = new THREE.PlaneGeometry( 30, 30 );
-// const planeMaterial = new THREE.MeshStandardMaterial({color: 0xFFFFFF, side: THREE.DoubleSide});
-// const plane = new THREE.Mesh( planeGeometry, planeMaterial );
-// scene.add( plane );
-// plane.rotation.x = - Math.PI / 2;
-// plane.receiveShadow = true;
-
-// const gridHelper = new THREE.GridHelper( 30, 30 );
-// scene.add( gridHelper );
-
-// const sphereGeometry = new THREE.SphereGeometry(2,4,4);
-// const sphereMaterial = new THREE.MeshPhongMaterial({color: 0x0000FF, wireframe: false});
-// const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-// scene.add(sphere);
-// sphere.position.set(-10, 10,0);
-// sphere.castShadow = true;
 
 // adding 100 + objects using instanced rendering from Wael Yasmina tutorial
 
@@ -99,7 +113,7 @@ waterfallGroup.add(mesh2);
 //scene.add(mesh);
 scene.add(waterfallGroup);
 
-waterfallGroup.position.set(-70, -37, 41); // example translation
+waterfallGroup.position.set(-70, -37+worldHeight, 41); // example translation
 // waterfallGroup.scale.set(0.1, 0.1, 0.1); // example translation
 const dummy = new THREE.Object3D();
 
@@ -146,7 +160,7 @@ const sphereMaterial = new THREE.MeshPhongMaterial({ map: rockTexture, wireframe
 
 const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 scene.add(sphere);
-sphere.position.set(-10, 10, 0);
+sphere.position.set(-10, 10+worldHeight, 0);
 sphere.castShadow = true;
 
 // Create another sphere
@@ -154,37 +168,70 @@ const sphereGeometry2 = new THREE.SphereGeometry(2,4,4);
 const sphereMaterial2 = new THREE.MeshPhongMaterial({color: 0xFFFF00, wireframe: false});
 const sphere3 = new THREE.Mesh(sphereGeometry2, sphereMaterial2);
 scene.add(sphere3);
-sphere3.position.set(-10, 10,0);
+sphere3.position.set(-10, 10 +worldHeight,0);
 sphere3.castShadow = true;
 
+// Adding the ocean
+// Water
+const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
+const water = new Water(
+    waterGeometry,
+    {
+        textureWidth: 512,
+        textureHeight: 512,
+        waterNormals: new THREE.TextureLoader().load('../assets/waternormals.jpg', function (texture) {
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        }),
+        sunDirection: new THREE.Vector3(),
+        sunColor: 0xffffff,
+        waterColor: 0x001e0f,
+        distortionScale: 3.7,
+        fog: scene.fog !== undefined
+    }
+);
+water.rotation.x = -Math.PI / 2;
+scene.add(water);
+
+
+
 // adding skybox
-let skyboxArray = [
-    new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Right.bmp'), side: THREE.BackSide }),
-    new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Left.bmp'), side: THREE.BackSide }),
-    new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Top.bmp'), side: THREE.BackSide }),
-    new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Bottom.bmp'), side: THREE.BackSide }),
-    new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Front.bmp'), side: THREE.BackSide }),
-    new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Back.bmp'), side: THREE.BackSide })
-];
 
-// Disable depth write for all materials to prevent z-fighting with other objects
-skyboxArray.forEach(material => {
-    material.depthWrite = false;
-});
+const skyboxLoader = new THREE.CubeTextureLoader();
+const skyboxTexture = skyboxLoader.load([
+    '../assets/Daylight Box_Right.bmp',
+    '../assets/Daylight Box_Left.bmp',
+    '../assets/Daylight Box_Top.bmp',
+    '../assets/Daylight Box_Bottom.bmp',
+    '../assets/Daylight Box_Front.bmp',
+    '../assets/Daylight Box_Back.bmp'
+]);
+scene.background = skyboxTexture;
 
-let skyboxGeo = new THREE.BoxGeometry(1000, 1000, 1000);
-let skybox = new THREE.Mesh(skyboxGeo, skyboxArray);
-scene.add(skybox);
+// let skyboxArray = [
+//     new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Right.bmp'), side: THREE.BackSide }),
+//     new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Left.bmp'), side: THREE.BackSide }),
+//     new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Top.bmp'), side: THREE.BackSide }),
+//     new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Bottom.bmp'), side: THREE.BackSide }),
+//     new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Front.bmp'), side: THREE.BackSide }),
+//     new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('../assets/Daylight Box_Back.bmp'), side: THREE.BackSide })
+// ];
+
+// // Disable depth write for all materials to prevent z-fighting with other objects
+// skyboxArray.forEach(material => {
+//     material.depthWrite = false;
+// });
+
+// let skyboxGeo = new THREE.BoxGeometry(1000, 1000, 1000);
+// let skybox = new THREE.Mesh(skyboxGeo, skyboxArray);
+// scene.add(skybox);
 
 
-// // Create a target object and position it in the scene
-// const targetGeometry = new THREE.SphereGeometry();
-// const targetMaterial = new THREE.MeshStandardMaterial({color: 0xFF0000});
-// const target = new THREE.Mesh(targetGeometry, targetMaterial);
-
-// target.position.set(0, 0, 0);
-// scene.add(target);
-
+// sun for the ocean
+const sun = new THREE.Vector3();
+const parameters = {
+    elevation: 2,
+    azimuth: 180
+};
 
 // adding an ambient light
 const ambientLight = new THREE.AmbientLight(0xFFFFFF,2.0);
@@ -193,14 +240,14 @@ scene.add(ambientLight);
 // adding a directional light
 const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
 scene.add(directionalLight);
-directionalLight.position.set(0,10,10);
+directionalLight.position.set(0,10 + worldHeight,10);
 directionalLight.castShadow = true;
 directionalLight.shadow.camera.bottom = -12;
 
 //adding a point light
 const pl = new THREE.PointLight(0xffffff, 1, 8, 2);
 pl.castShadow = true; // Enable shadows for this light
-pl.position.set(-70, 10, 2); // Position the light above the scene
+pl.position.set(-70, 10 + worldHeight, 2); // Position the light above the scene
 const plHelper = new THREE.PointLightHelper(pl, 0.5);
 scene.add(pl, plHelper);
 // const pl = new THREE.PointLight(0xffffff, 1, 100, 2); // Increased distance
@@ -212,6 +259,7 @@ scene.add(pl, plHelper);
 //scene.background = textureLoader.load(sky);
 
 
+
 // Load the GLTF model
 const assetLoader = new GLTFLoader();
 assetLoader.load(islandURL.href, function(gltf) {
@@ -221,7 +269,7 @@ assetLoader.load(islandURL.href, function(gltf) {
     model.scale.set(0.1, 0.1, 0.1); // Adjust as needed
 
     // Adjust the position of the model
-    model.position.set(40, 0, -20); // Adjust as needed
+    model.position.set(40, worldHeight, -20); // Adjust as needed
 
     model.traverse((object) => {
         console.log(object.name);
@@ -240,7 +288,7 @@ assetLoader.load(airplaneURL.href, function(gltf) {
     plane.scale.set(0.08, 0.08, 0.08); // Adjust as needed
 
     // Adjust the position of the model
-    plane.position.set(70, 20, 50); // Adjust as needed
+    plane.position.set(70, 20+worldHeight, 50); // Adjust as needed
 
 }, undefined, function(error) {
     console.error(error);
@@ -255,12 +303,23 @@ assetLoader.load(waterfallURL.href, function(gltf) {
     waterfallObj.scale.set(0.07, 0.07, 0.07); // Adjust as needed
 
     // Adjust the position of the model
-    waterfallObj.position.set(-70, -17, 32); // Adjust as needed
+    waterfallObj.position.set(-70, -17+worldHeight, 32); // Adjust as needed
     waterfallObj.rotation.y -= 0.5; // Adjust as needed
 }, undefined, function(error) {
     console.error(error);
 });
 
+// load the bird model
+// let birdModel;
+// assetLoader.load(birdURL.href, function(gltf) {
+//     birdModel = gltf.scene.children[0]; // Assuming the bird model is the first child
+//     birdModel.scale.set(2, 2, 2); // Adjust the size of the model
+
+//     // Initialize birds
+//     initBirds();
+// }, undefined, function(error) {
+//     console.error(error);
+// });
 
 const gui = new dat.GUI();
 const options = {
@@ -287,6 +346,8 @@ let step = 0;
 
 // Function to animate the box
 const matrix = new THREE.Matrix4();
+let then = performance.now(); // for bird animation
+
 function animate(time) {
     // Rotating the box in x and y direction based on time
     diamond.rotation.y = time / 1000;
@@ -355,6 +416,8 @@ function animate(time) {
     mesh.instanceMatrix.needsUpdate = true;
     mesh2.instanceMatrix.needsUpdate = true; // Update the instance matrix for mesh2
 
+    // animate the water 
+    water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
 
     renderer.render( scene, camera );
 }
