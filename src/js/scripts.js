@@ -17,7 +17,7 @@ import { Water } from 'three/examples/jsm/objects/Water.js'; // Import Water fro
 const islandURL = new URL('../assets/floating-islands.glb', import.meta.url);
 const airplaneURL = new URL('../assets/Airplane.glb', import.meta.url);
 const waterfallURL = new URL('../assets/Waterfall.glb', import.meta.url);
-
+const worldHeight = 100;
 // Low poly floating islands by vanAchen [CC-BY] via Poly Pizza
 
 // Airplane by Poly by Google [CC-BY] via Poly Pizza
@@ -35,14 +35,40 @@ document.body.appendChild( renderer.domElement );
 // Creating a new scene
 const scene = new THREE.Scene();
 // Creating a perspective camera with a field of view of 75, aspect ratio based on window size, and near and far clipping plane
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 2000 );
+const camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 0.1, 2000 );
 // Creating orbit controls for the camera
 const orbit = new OrbitControls(camera, renderer.domElement);
 
 // Setting the camera position
-camera.position.set(-10,5,150);
-// Updating the orbit controls
-orbit.update();
+camera.position.set(0,130,180);
+
+//camera controls
+// Create a new dat.GUI object
+// var cameraGui = new dat.GUI();
+
+// // Create an object to hold the camera position
+// var cameraPosition = {
+//   x: camera.position.x,
+//   y: camera.position.y,
+//   z: camera.position.z
+// };
+
+// // Add sliders for the camera position
+// cameraGui.add(cameraPosition, 'x', -300, 300).onChange(function(value) {
+//   // Update the camera position when the slider value changes
+//   camera.position.x = value;
+// });
+
+// cameraGui.add(cameraPosition, 'y', -300, 300).onChange(function(value) {
+//   camera.position.y = value;
+// });
+
+// cameraGui.add(cameraPosition, 'z', -300, 300).onChange(function(value) {
+//   camera.position.z = value;
+// });
+
+// // Updating the orbit controls
+// orbit.update();
 
 // Creating a box geometry
 const geometry = new THREE.OctahedronGeometry();
@@ -60,6 +86,8 @@ const diamond = new THREE.Mesh( geometry, diamondMaterial );
 
 // Scaling the diamond to make it bigger and skinnier
 diamond.scale.set(2, 4, 2);
+diamond.position.y += worldHeight;
+
 // Adding the box to the scene
 scene.add( diamond );
 
@@ -80,7 +108,7 @@ waterfallGroup.add(mesh2);
 //scene.add(mesh);
 scene.add(waterfallGroup);
 
-waterfallGroup.position.set(-70, -37, 41); // example translation
+waterfallGroup.position.set(-70, -37+worldHeight, 41); // example translation
 // waterfallGroup.scale.set(0.1, 0.1, 0.1); // example translation
 const dummy = new THREE.Object3D();
 
@@ -127,7 +155,7 @@ const sphereMaterial = new THREE.MeshPhongMaterial({ map: rockTexture, wireframe
 
 const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 scene.add(sphere);
-sphere.position.set(-10, 10, 0);
+sphere.position.set(-10, 10+worldHeight, 0);
 sphere.castShadow = true;
 
 // Create another sphere
@@ -135,7 +163,7 @@ const sphereGeometry2 = new THREE.SphereGeometry(2,4,4);
 const sphereMaterial2 = new THREE.MeshPhongMaterial({color: 0xFFFF00, wireframe: false});
 const sphere3 = new THREE.Mesh(sphereGeometry2, sphereMaterial2);
 scene.add(sphere3);
-sphere3.position.set(-10, 10,0);
+sphere3.position.set(-10, 10 +worldHeight,0);
 sphere3.castShadow = true;
 
 // Adding the ocean
@@ -207,14 +235,14 @@ scene.add(ambientLight);
 // adding a directional light
 const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
 scene.add(directionalLight);
-directionalLight.position.set(0,10,10);
+directionalLight.position.set(0,10 + worldHeight,10);
 directionalLight.castShadow = true;
 directionalLight.shadow.camera.bottom = -12;
 
 //adding a point light
 const pl = new THREE.PointLight(0xffffff, 1, 8, 2);
 pl.castShadow = true; // Enable shadows for this light
-pl.position.set(-70, 10, 2); // Position the light above the scene
+pl.position.set(-70, 10 + worldHeight, 2); // Position the light above the scene
 const plHelper = new THREE.PointLightHelper(pl, 0.5);
 scene.add(pl, plHelper);
 // const pl = new THREE.PointLight(0xffffff, 1, 100, 2); // Increased distance
@@ -235,7 +263,7 @@ assetLoader.load(islandURL.href, function(gltf) {
     model.scale.set(0.1, 0.1, 0.1); // Adjust as needed
 
     // Adjust the position of the model
-    model.position.set(40, 0, -20); // Adjust as needed
+    model.position.set(40, worldHeight, -20); // Adjust as needed
 
     model.traverse((object) => {
         console.log(object.name);
@@ -254,7 +282,7 @@ assetLoader.load(airplaneURL.href, function(gltf) {
     plane.scale.set(0.08, 0.08, 0.08); // Adjust as needed
 
     // Adjust the position of the model
-    plane.position.set(70, 20, 50); // Adjust as needed
+    plane.position.set(70, 20+worldHeight, 50); // Adjust as needed
 
 }, undefined, function(error) {
     console.error(error);
@@ -269,7 +297,7 @@ assetLoader.load(waterfallURL.href, function(gltf) {
     waterfallObj.scale.set(0.07, 0.07, 0.07); // Adjust as needed
 
     // Adjust the position of the model
-    waterfallObj.position.set(-70, -17, 32); // Adjust as needed
+    waterfallObj.position.set(-70, -17+worldHeight, 32); // Adjust as needed
     waterfallObj.rotation.y -= 0.5; // Adjust as needed
 }, undefined, function(error) {
     console.error(error);
