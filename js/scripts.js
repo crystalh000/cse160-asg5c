@@ -10,6 +10,9 @@ import * as dat from 'dat.gui';
 import sky from '../img/sky.jpg';
 import rock from '../img/rock.jpg';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as YUKA from 'yuka';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'; // used for cloning the model
+
 import { Water } from 'three/examples/jsm/objects/Water.js'; // Import Water from the examples
 
 // import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
@@ -30,17 +33,18 @@ const worldHeight = 100;
 // Parrot by Poly by Google [CC-BY] via Poly Pizza
 
 // Creating a WebGL renderer
+const offsetHeight = 20;
 const renderer = new THREE.WebGLRenderer();
 // adding shadows
 renderer.shadowMap.enabled = true;
 // Setting the size of the renderer to the window size
-renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setSize( window.innerWidth, window.innerHeight - offsetHeight);
 // Appending the renderer to the body of the document
 document.body.appendChild( renderer.domElement );
 // Creating a new scene
 const scene = new THREE.Scene();
 // Creating a perspective camera with a field of view of 75, aspect ratio based on window size, and near and far clipping plane
-const camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 0.1, 2000 );
+const camera = new THREE.PerspectiveCamera( 80, window.innerWidth / (window.innerHeight- offsetHeight), 0.1, 2000 );
 // Creating orbit controls for the camera
 const orbit = new OrbitControls(camera, renderer.domElement);
 
@@ -309,7 +313,7 @@ assetLoader.load(waterfallURL.href, function(gltf) {
     console.error(error);
 });
 
-// load the bird model
+//load the bird model
 // let birdModel;
 // assetLoader.load(birdURL.href, function(gltf) {
 //     birdModel = gltf.scene.children[0]; // Assuming the bird model is the first child
@@ -320,6 +324,126 @@ assetLoader.load(waterfallURL.href, function(gltf) {
 // }, undefined, function(error) {
 //     console.error(error);
 // });
+
+
+// // Initialize the YUKA AI
+// const vehicle = new YUKA.Vehicle();
+// //vehicle.setRenderComponent(bird, sync);
+// // vehicle.setRenderComponent(vehicleMesh, sync);
+// const wanderBehavior = new YUKA.WanderBehavior();
+// vehicle.steering.add(wanderBehavior);
+
+// for (let i = 0; i < 4; i++) {
+
+    
+
+// }
+
+function sync(entity, renderComponent) {
+    renderComponent.matrix.copy(entity.worldMatrix);
+}
+
+const entityManager = new YUKA.EntityManager();
+const yukaTime = new YUKA.Time();
+const clock = new THREE.Clock();
+
+// Load the GLTF model for YUKA tutorial (REAL)
+let bird; 
+let mixer;
+assetLoader.load(birdURL.href, function(gltf) {
+    bird = gltf.scene;
+    const birdies = new THREE.AnimationObjectGroup();
+    mixer = new THREE.AnimationMixer(birdies);
+    
+    //bird.scale.set(0.1, 0.1, 0.1); // Adjust as needed
+    // Adjust the position of the model
+    // bird.position.set(70, worldHeight, 50); // Adjust as needed
+    // scene.add(bird);
+    // bird.matrixAutoUpdate = false;
+    // vehicle.scale = new YUKA.Vector3(0.1, 0.1, 0.1);
+    // vehicle.setRenderComponent(bird, sync);
+
+    // Adjust the size of the model
+    for(let i = 0; i < 10; i++) {
+        const birdClone = SkeletonUtils.clone(bird);
+        birdClone.matrixAutoUpdate = false;
+        scene.add(birdClone);
+        birdies.add(birdClone);
+
+        const vehicle = new YUKA.Vehicle();
+        vehicle.maxSpeed = 200; // Increase the maxSpeed for faster movement
+        vehicle.setRenderComponent(birdClone, sync);
+
+        const wanderBehavior = new YUKA.WanderBehavior();
+        wanderBehavior.wanderRadius = 5; // Adjust as needed
+        wanderBehavior.wanderRate = 10; // Adjust as needed
+        vehicle.steering.add(wanderBehavior);
+        entityManager.add(vehicle);
+        vehicle.position.x = 2.5 - Math.random() * 5;
+        vehicle.position.y = worldHeight; // Adjust as needed
+        vehicle.position.z = 2.5 - Math.random() * 5;
+        vehicle.rotation.fromEuler(0,2 * Math.PI * Math.random(),0);
+        vehicle.scale = new YUKA.Vector3(0.1, 0.1, 0.1);
+    }
+    
+}, undefined, function(error) {
+    console.error(error);
+});
+
+// const vehicleGeometry = new THREE.ConeGeometry(0.1, 0.5, 8);
+// vehicleGeometry.rotateX(Math.PI * 0.5);
+// const vehicleMaterial = new THREE.MeshNormalMaterial();
+// const vehicleMesh = new THREE.Mesh(vehicleGeometry, vehicleMaterial);
+
+// vehicleMesh.position.y = worldHeight+20;
+// vehicleMesh.scale.set(2, 4, 2);
+// vehicleMesh.matrixAutoUpdate = false;
+// scene.add(vehicleMesh);
+
+// // Initialize the YUKA AI
+// const vehicle = new YUKA.Vehicle();
+// //vehicle.setRenderComponent(bird, sync);
+// vehicle.setRenderComponent(vehicleMesh, sync);
+
+// function sync(entity, renderComponent) {
+//     renderComponent.matrix.copy(entity.worldMatrix);
+// }
+
+// const path = new YUKA.Path();
+// path.add(new YUKA.Vector3(-4,0+worldHeight,4));
+// path.add(new YUKA.Vector3(-6,0+worldHeight,0));
+// path.add(new YUKA.Vector3(-4,0+worldHeight,-4));
+// path.add(new YUKA.Vector3(0,0+worldHeight,0));
+// path.add(new YUKA.Vector3(4,0+worldHeight,-4));
+// path.add(new YUKA.Vector3(6,0+worldHeight,0));
+// path.add(new YUKA.Vector3(4,0+worldHeight,4));
+// path.add(new YUKA.Vector3(0,0+worldHeight,6));
+
+// path.loop = true;
+
+// vehicle.position.copy(path.current());
+// const followPathBehavior = new YUKA.FollowPathBehavior(path, 0.5);
+// vehicle.steering.add(followPathBehavior);
+
+// const onPathBehavior = new YUKA.OnPathBehavior(path);
+// onPathBehavior.radious = 0.8;
+// vehicle.steering.add(onPathBehavior);
+
+
+// const entityManager = new YUKA.EntityManager();
+// entityManager.add(vehicle);
+
+// const position = [];
+// for (let i = 0; i < path._waypoints.length; i++) {
+//     const waypoint = path._waypoints[i];
+//     position.push(waypoint.x, waypoint.y, waypoint.z);
+// }
+
+// const lineGeometry = new THREE.BufferGeometry();
+// lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(position, 3));
+// const lineMaterial = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
+// const lines = new THREE.LineLoop(lineGeometry, lineMaterial);
+
 
 const gui = new dat.GUI();
 const options = {
@@ -419,6 +543,15 @@ function animate(time) {
     // animate the water 
     water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
 
+    // bird yuka
+    const clockDelta = clock.getDelta();
+    if (mixer) {
+        mixer.update(clockDelta);
+    }
+    const delta = yukaTime.update().getDelta();
+    entityManager.update(delta);
+
+
     renderer.render( scene, camera );
 }
 
@@ -426,7 +559,7 @@ function animate(time) {
 renderer.setAnimationLoop( animate );
 
 window.addEventListener('resize', function() {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = window.innerWidth / (window.innerHeight- offsetHeight);
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight- offsetHeight);
 });
